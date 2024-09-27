@@ -36,8 +36,8 @@ client = TelegramClient(
     session=session,
     api_id=api_id,
     api_hash=api_hash,
-    device_model="PROG Phone 8",      # Custom device model
-    system_version="Telegram Android",  # Custom system version
+    device_model="ROG Phone 8",      # Custom device model
+    system_version="Android",  # Custom system version
     app_version="11.0.0"  # Custom app version
 )
 
