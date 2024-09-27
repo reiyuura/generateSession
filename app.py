@@ -3,8 +3,8 @@ from telethon.sessions import SQLiteSession
 import os
 
 # Ganti dengan API ID dan API Hash dari Telegram Anda
-api_id = '28343568'
-api_hash = '29cbfe0d8713abefb82c9a016a3bb3db'
+api_id = ''
+api_hash = ''
 
 # Membuat folder sessions jika belum ada
 session_folder = 'sessions'
