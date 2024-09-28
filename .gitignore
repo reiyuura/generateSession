@@ -1,2 +1,6 @@
 sessions/*
 .env
+app_old.py
+app_v2.py
+multi.py
+multiv2.py
