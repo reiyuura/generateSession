@@ -68,23 +68,24 @@ async def login_with_qr(client):
 
 # Fungsi utama untuk mengatur sesi dan memilih metode login
 async def main():
-    # Pertanyaan pertama: QR atau nomor telepon
     login_option = input(f"{Fore.CYAN}[{get_timestamp()}] Ingin login dengan QR code atau nomor telepon? (ketik 'qr' untuk QR code, atau 'phone' untuk nomor telepon): {Style.RESET_ALL}").strip().lower()
 
-    # Meminta pengguna untuk memasukkan nama sesi setelah memilih metode login
     session_name = ""
     while not session_name.strip():
         session_name = input(f"{Fore.CYAN}[{get_timestamp()}] Masukkan nama sesi (tanpa ekstensi .session): {Style.RESET_ALL}").strip()
 
-    # Nama sesi
     session_path = os.path.join(session_folder, f"{session_name}.session")
 
-    # Memeriksa apakah sesi sudah ada
-    if os.path.exists(session_path):
-        use_existing = input(f"{Fore.YELLOW}[{get_timestamp()}] Sesi '{session_name}' sudah ada. Ingin menggunakan sesi ini? (y/n): {Style.RESET_ALL}").lower()
-        if use_existing != 'y':
-            print(f"{Fore.RED}[{get_timestamp()}] Membatalkan operasi.{Style.RESET_ALL}")
-            return
+    # Meminta input baru jika user memilih untuk tidak mengganti sesi
+    while os.path.exists(session_path):
+        use_existing = input(f"{Fore.YELLOW}[{get_timestamp()}] Sesi '{session_name}' sudah ada. Ingin menimpa sesi ini? (y/n): {Style.RESET_ALL}").lower()
+        if use_existing == 'y':
+            os.remove(session_path)
+            print(f"{Fore.GREEN}[{get_timestamp()}] Sesi '{session_name}' diganti.{Style.RESET_ALL}")
+            break  # Lanjut ke proses login setelah sesi lama dihapus
+        else:
+            session_name = input(f"{Fore.CYAN}[{get_timestamp()}] Masukkan nama sesi baru (tanpa ekstensi .session): {Style.RESET_ALL}").strip()
+            session_path = os.path.join(session_folder, f"{session_name}.session")
 
     # Membuat sesi dan client Telethon
     session = SQLiteSession(session_path)
