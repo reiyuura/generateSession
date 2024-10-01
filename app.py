@@ -43,28 +43,36 @@ async def login_with_phone(client):
 
 # Fungsi untuk login dengan QR code
 async def login_with_qr(client):
-    print(f"{Fore.GREEN}[{get_timestamp()}] Silakan scan QR code di aplikasi Telegram untuk login.{Style.RESET_ALL}")
-
-    # Generate QR code for login
-    qr = await client.qr_login()
-
-    # Menampilkan QR code di terminal
-    qrcode_terminal.draw(qr.url)
-
-    # Menunggu login selesai atau dibatalkan
-    try:
-        await qr.wait()
-        print(f"{Fore.GREEN}[{get_timestamp()}] Login berhasil melalui QR code.{Style.RESET_ALL}")
-    except SessionPasswordNeededError:
-        print(f"{Fore.YELLOW}[{get_timestamp()}] Diperlukan verifikasi dua langkah.{Style.RESET_ALL}")
-        password = input(f"{Fore.YELLOW}[{get_timestamp()}] Masukkan kata sandi dua langkah: {Style.RESET_ALL}")
+    while True:  # Loop untuk otomatis refresh QR code jika expired
         try:
-            await client.sign_in(password=password)
-            print(f"{Fore.GREEN}[{get_timestamp()}] Login berhasil dengan verifikasi dua langkah.{Style.RESET_ALL}")
-        except PasswordHashInvalidError:
-            print(f"{Fore.RED}[{get_timestamp()}] Kata sandi salah.{Style.RESET_ALL}")
-    except Exception as e:
-        print(f"{Fore.RED}[{get_timestamp()}] Terjadi kesalahan saat login melalui QR code: {str(e)}{Style.RESET_ALL}")
+            print(f"{Fore.GREEN}[{get_timestamp()}] Silakan scan QR code di aplikasi Telegram untuk login.{Style.RESET_ALL}")
+
+            # Generate QR code for login
+            qr = await client.qr_login()
+
+            # Menampilkan QR code di terminal
+            qrcode_terminal.draw(qr.url)
+
+            # Menunggu login selesai atau dibatalkan
+            try:
+                await qr.wait()
+                print(f"{Fore.GREEN}[{get_timestamp()}] Login berhasil melalui QR code.{Style.RESET_ALL}")
+                break  # Keluar dari loop jika login berhasil
+            except Exception:
+                print(f"{Fore.YELLOW}[{get_timestamp()}] QR code expired, menghasilkan QR code baru...{Style.RESET_ALL}")
+
+        except SessionPasswordNeededError:
+            print(f"{Fore.YELLOW}[{get_timestamp()}] Diperlukan verifikasi dua langkah.{Style.RESET_ALL}")
+            password = input(f"{Fore.YELLOW}[{get_timestamp()}] Masukkan kata sandi dua langkah: {Style.RESET_ALL}")
+            try:
+                await client.sign_in(password=password)
+                print(f"{Fore.GREEN}[{get_timestamp()}] Login berhasil dengan verifikasi dua langkah.{Style.RESET_ALL}")
+                break  # Keluar dari loop jika login berhasil
+            except PasswordHashInvalidError:
+                print(f"{Fore.RED}[{get_timestamp()}] Kata sandi salah.{Style.RESET_ALL}")
+        except Exception as e:
+            print(f"{Fore.RED}[{get_timestamp()}] Terjadi kesalahan saat login melalui QR code: {str(e)}{Style.RESET_ALL}")
+            break  # Keluar dari loop jika terjadi kesalahan yang tidak terduga
 
 # Fungsi utama untuk mengatur sesi dan memilih metode login
 async def main():
@@ -78,7 +86,7 @@ async def main():
 
     # Meminta input baru jika user memilih untuk tidak mengganti sesi
     while os.path.exists(session_path):
-        use_existing = input(f"{Fore.YELLOW}[{get_timestamp()}] Sesi '{session_name}' sudah ada. Ingin menimpa sesi ini? (y/n): {Style.RESET_ALL}").lower()
+        use_existing = input(f"{Fore.YELLOW}[{get_timestamp()}] Sesi '{session_name}' sudah ada. Ingin mengganti sesi ini? (y/n): {Style.RESET_ALL}").lower()
         if use_existing == 'y':
             os.remove(session_path)
             print(f"{Fore.GREEN}[{get_timestamp()}] Sesi '{session_name}' diganti.{Style.RESET_ALL}")
@@ -113,11 +121,13 @@ async def main():
     # Tampilkan nama pengguna yang sudah login
     me = await client.get_me()
     print(f"{Fore.GREEN}[{get_timestamp()}] Anda sudah login sebagai {me.first_name}{Style.RESET_ALL}")
+    print(f"{Fore.GREEN}[{get_timestamp()}] Sesi tersimpan pada folder sessions {Style.RESET_ALL}")
 
 # Menjalankan client dengan penanganan kesalahan
 if __name__ == "__main__":
+
     try:
-        client = TelegramClient('my_session', api_id, api_hash)
+        client = TelegramClient('fail_session', api_id, api_hash)
         client.loop.run_until_complete(main())
     except KeyboardInterrupt:
         print(f"{Fore.RED}[{get_timestamp()}] Program dihentikan oleh pengguna.{Style.RESET_ALL}")
